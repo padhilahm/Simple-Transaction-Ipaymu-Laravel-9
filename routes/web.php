@@ -25,3 +25,4 @@ Route::post('add-to-cart/{id}', [ProductController::class, 'addToCart']);
 Route::get('cart', [ProductController::class, 'cart']);
 Route::delete('delete-cart/{id}', [ProductController::class, 'deleteCart']);
 Route::get('buyer-cart', [BuyerController::class, 'cart']);
+Route::get('check-transaction', [TransactionController::class, 'checkTransaction']);

@@ -39,13 +39,17 @@
                                                 $total += $cart['price'] * $cart['quantity'];
                                             @endphp
                                         @endforeach
+                                        <tr>
+                                            <td colspan="3">Fee Admin</th>
+                                            <td>Rp.{{ number_format(5000, 0, ',', '.') }}</td>
+                                        </tr>
                                     @endif
                                 </tbody>
                                 <tfoot>
                                     <tr>
                                         <th colspan="3">Total</th>
                                         <th>
-                                            Rp.{{ number_format($total, 0, ',', '.') }}
+                                            Rp.{{ number_format($total + 5000, 0, ',', '.') }}
                                         </th>
                                     </tr>
                                 </tfoot>

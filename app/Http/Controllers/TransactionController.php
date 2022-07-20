@@ -27,6 +27,9 @@ class TransactionController extends Controller
             $productPrice[] = $cart['price'];
             $productQuantity[] = $cart['quantity'];
         }
+        $productName[] = 'Fee Admin';
+        $productPrice[] = 5000;
+        $productQuantity[] = 1;
 
         $va           = '0000005751648584'; //get on iPaymu dashboard
         $secret       = 'SANDBOXD87D811D-D287-4E51-9545-466EAF7A5019-20220718173413'; //get on iPaymu dashboard
@@ -136,12 +139,89 @@ class TransactionController extends Controller
                 ]);
             }
 
+            TransactionDetail::create([
+                'transaction_id' => $transaction->id,
+                'product_id' => '0',
+                'product_name' => 'Fee Admin',
+                'quantity' => 1,
+                'price' => 5000
+            ]);
+
             DB::commit();
             session()->forget('cart');
             return redirect($url);
         } catch (\Exception $e) {
             DB::rollBack();
             return redirect()->back()->with('error', 'Something went wrong');
+        }
+    }
+
+    public function checkTransaction()
+    {
+        // get id
+        $id = $_GET['id'];
+
+        $va           = '0000005751648584'; //get on iPaymu dashboard
+        $secret       = 'SANDBOXD87D811D-D287-4E51-9545-466EAF7A5019-20220718173413'; //get on iPaymu dashboard
+
+        $url          = 'https://sandbox.ipaymu.com/api/v2/transaction'; //url
+        $method       = 'POST'; //method
+
+        //Request Body//
+        $body['transactionId'] = $id; //session id
+        //End Request Body//
+
+        //Generate Signature
+        // *Don't change this
+        $jsonBody     = json_encode($body, JSON_UNESCAPED_SLASHES);
+        $requestBody  = strtolower(hash('sha256', $jsonBody));
+        $stringToSign = strtoupper($method) . ':' . $va . ':' . $requestBody . ':' . $secret;
+        $signature    = hash_hmac('sha256', $stringToSign, $secret);
+        $timestamp    = Date('YmdHis');
+        //End Generate Signature
+
+        $ch = curl_init($url);
+
+        $headers = array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+            'va: ' . $va,
+            'signature: ' . $signature,
+            'timestamp: ' . $timestamp
+        );
+
+        curl_setopt($ch, CURLOPT_HEADER, false);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+
+        curl_setopt($ch, CURLOPT_POST, count($body));
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $jsonBody);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        $err = curl_error($ch);
+        $ret = curl_exec($ch);
+        curl_close($ch);
+        if ($err) {
+            echo "<pre>";
+            print_r($ret);
+            echo "</pre>";
+            return;
+        } else {
+            //Response
+            $ret = json_decode($ret);
+            if ($ret->Status == 200) {
+                echo "<pre>";
+                print_r($ret);
+                echo "</pre>";
+                return;
+            } else {
+                echo "<pre>";
+                print_r($ret);
+                echo "</pre>";
+                return;
+            }
+            //End Response
         }
     }
 }
